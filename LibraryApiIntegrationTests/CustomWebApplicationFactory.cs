@@ -1,9 +1,11 @@
 ﻿using LibraryApi;
+using LibraryApi.Domain;
 using LibraryApi.Services;
+using LibraryApiIntegrationTests.Fakes;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
-
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
@@ -20,17 +22,23 @@ namespace LibraryApiIntegrationTests
             builder.ConfigureServices(services =>
             {
 
-                var descriptor = services.SingleOrDefault(
+                var systemTimeDescriptor = services.SingleOrDefault(
                     d => d.ServiceType == typeof(ISystemTime));
 
-                if(descriptor != null)
+                if (systemTimeDescriptor != null)
                 {
-                    services.Remove(descriptor);
-                    services.AddTransient<ISystemTime, TestingSystemTime>();
+                    services.Remove(systemTimeDescriptor);
+                    services.AddTransient<ISystemTime, FakeSystemTime>();
                 }
+                             
+                var dbContextDescriptor = services.SingleOrDefault(
+                    d => d.ServiceType == typeof(DbContextOptions<LibraryDataContext>));
 
-                var provider = services
-                    .BuildServiceProvider();
+                services.Remove(dbContextDescriptor);
+                services.AddDbContext<LibraryDataContext>(options =>
+                {
+                    options.UseInMemoryDatabase("JastAName");
+                });
 
                 var sp = services.BuildServiceProvider();
 
@@ -39,6 +47,9 @@ namespace LibraryApiIntegrationTests
                 {
                     var scopedServices = scope.ServiceProvider;
 
+                    var db = scopedServices.GetRequiredService<LibraryDataContext>();
+                    db.Database.EnsureCreated();
+
                     var loggerFactory = scopedServices.GetRequiredService<ILoggerFactory>();
 
                     var logger = scopedServices
@@ -46,7 +57,7 @@ namespace LibraryApiIntegrationTests
 
                     try
                     {
-
+                        DataUtils.ReInitializeDb(db);
                     }
                     catch (Exception ex)
                     {
