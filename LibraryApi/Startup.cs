@@ -15,6 +15,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using AutoMapper;
+using LibraryApi.Profiles;
 
 namespace LibraryApi
 {
@@ -43,6 +45,17 @@ namespace LibraryApi
                 options.UseSqlServer(Configuration.GetConnectionString("LibraryDatabase"))
             ) ;
 
+            // services.AddAutoMapper(typeof(Startup));
+
+            // AUTOMAPPER
+            var mappingConfig = new MapperConfiguration(mc =>
+            {
+                mc.AddProfile(new BooksProfile());
+            });
+            IMapper mapper = mappingConfig.CreateMapper();
+            services.AddSingleton<IMapper>(mapper);
+            services.AddSingleton<MapperConfiguration>(mappingConfig);
+
             services.AddScoped<IMapBooks, EfBooksMapper>();
 
             services.AddSwaggerGen(c =>
@@ -54,7 +67,7 @@ namespace LibraryApi
                     Contact = new Microsoft.OpenApi.Models.OpenApiContact
                     {
                         Name = "Jeff Gonzalez",
-                        Email = "jeff@hypetheory.com"
+                        Email = "jeff@hypertheory.com"
                     },
                     Description = "An Api for the BES 100 Class"
                 });

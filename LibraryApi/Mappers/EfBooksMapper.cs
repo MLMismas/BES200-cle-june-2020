@@ -1,33 +1,34 @@
-﻿using LibraryApi.Domain;
+﻿using AutoMapper;
+using LibraryApi.Domain;
 using LibraryApi.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper.QueryableExtensions;
 
 namespace LibraryApi.Mappers
 {
     public class EfBooksMapper : IMapBooks
     {
         private LibraryDataContext Context;
-        public EfBooksMapper(LibraryDataContext context)
+        IMapper Mapper;
+        MapperConfiguration Config;
+
+        public EfBooksMapper(LibraryDataContext context, IMapper mapper, MapperConfiguration config)
         {
             Context = context;
+            Mapper = mapper;
+            Config = config;
         }
+
         public async Task<GetBooksResponse> GetAllBooksFor(string genre)
         {
             var books = Context.Books
             .Where(b => b.InStock)
-            .Select(b => new GetBooksResponseItem
-            {
-                Id = b.Id,
-                Title = b.Title,
-                Author = b.Author,
-                Genre = b.Genre,
-                NumberOfPages = b.NumberOfPages
-            });
-
+            // .Select(b => Mapper.Map<GetBooksResponseItem>(b));
+            .ProjectTo<GetBooksResponseItem>(Config);
 
             if (genre != null)
             {
