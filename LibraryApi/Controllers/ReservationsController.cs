@@ -20,16 +20,15 @@ namespace LibraryApi.Controllers
         public async Task<ActionResult<Reservation>> AddReservation([FromBody] Reservation reservationToAdd)
         {
             var numberOfBooksInReservation = reservationToAdd.Books.Count(c => c == ',');
-            for(var t = 0; t < numberOfBooksInReservation; t++)
+            for (var t = 0; t < numberOfBooksInReservation; t++)
             {
                 await Task.Delay(1000); // take a second to process each book.
             }
-            // should be a model, with validation and returning a 201 with a url
             reservationToAdd.ReservationCreated = DateTime.Now;
             reservationToAdd.Status = ReservationStatus.Processing;
             Context.Reservations.Add(reservationToAdd);
             await Context.SaveChangesAsync();
             return Ok(reservationToAdd);
-        } 
+        }
     }
 }
