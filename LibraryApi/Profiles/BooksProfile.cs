@@ -14,6 +14,13 @@ namespace LibraryApi.Profiles
         {
             // book -> getbooksresponseitem
             CreateMap<Book, GetBooksResponseItem>();
+
+            // PostBookCreate -> Book
+            CreateMap<PostBookCreate, Book>()
+                .ForMember(dest => dest.InStock, d => d.MapFrom((_) => true)); // underscore is a placeholder
+
+            // Book -> GetABookResponse
+            CreateMap<Book, GetABookResponse>();
         }
     }
 }
